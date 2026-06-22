@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API 调试</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,sans-serif;background:#f6f7f9;color:#1f2937}
+main{max-width:960px;margin:0 auto;padding:32px 16px}
+h1{margin:0 0 8px;font-size:28px}
+.sub{margin:0 0 24px;color:#6b7280;font-size:14px}
+.row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.row label{display:flex;align-items:center;gap:6px;font-size:14px;color:#4b5563}
+select,input[type=text]{border:1px solid #d1d5db;border-radius:6px;padding:10px 12px;font:inherit;background:#fff}
+input[type=text]{flex:1;min-width:200px}
+textarea{width:100%;border:1px solid #d1d5db;border-radius:6px;padding:10px 12px;font:13px/1.5 ui-monospace,monospace;background:#fff;resize:vertical;min-height:80px}
+textarea.body{min-height:100px}
+button{border:0;border-radius:6px;padding:10px 20px;font:inherit;font-weight:600;cursor:pointer;background:#2563eb;color:#fff}
+button:disabled{opacity:.55;cursor:not-allowed}
+.panel{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin-bottom:16px}
+.panel h2{margin:0 0 12px;font-size:16px}
+#response{white-space:pre-wrap;font:13px/1.5 ui-monospace,monospace;background:#1e293b;color:#e2e8f0;border-radius:6px;padding:14px;min-height:60px;overflow-x:auto}
+#statusBadge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:13px;font-weight:700;margin-bottom:8px}
+.ok{background:#16a34a;color:#fff}
+.err{background:#dc2626;color:#fff}
+.hd{color:#94a3b8;margin-right:12px}
+</style>
+</head>
+<body>
+<main>
+<h1>API 调试</h1>
+<p class="sub"><a href="/">← 管理页面</a> · 手动请求后端接口</p>
+
+<div class="panel">
+  <div class="row">
+    <label>方法
+      <select id="method">
+        <option>GET</option>
+        <option>POST</option>
+        <option>DELETE</option>
+      </select>
+    </label>
+    <input type="text" id="url" placeholder="/students 或 /students/1 或 /students/subject/Math" value="/students">
+    <button id="sendBtn">发送</button>
+  </div>
+  <div id="bodyRow" style="display:none">
+    <label style="font-size:14px;color:#4b5563;display:block;margin-bottom:4px">请求体 (JSON)</label>
+    <textarea id="body" class="body" placeholder='{"name":"张三","subject":"Math","grade":88.5}'></textarea>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>响应</h2>
+  <div id="statusBadge"></div>
+  <div id="response">点击「发送」查看结果</div>
+</div>
+</main>
+
+<script>
+const methodSel = document.getElementById('method');
+const urlInput = document.getElementById('url');
+const bodyRow = document.getElementById('bodyRow');
+const bodyArea = document.getElementById('body');
+const sendBtn = document.getElementById('sendBtn');
+const badge = document.getElementById('statusBadge');
+const respEl = document.getElementById('response');
+
+methodSel.addEventListener('change', () => {
+  bodyRow.style.display = methodSel.value === 'POST' ? '' : 'none';
+});
+
+sendBtn.addEventListener('click', async () => {
+  const method = methodSel.value;
+  const url = urlInput.value.trim() || '/students';
+  sendBtn.disabled = true;
+  badge.textContent = '';
+  respEl.textContent = '请求中...';
+
+  try {
+    const opts = { method, headers: {} };
+    if (method === 'POST') {
+      opts.headers['Content-Type'] = 'application/json';
+      opts.body = bodyArea.value || '{}';
+    }
+    const res = await fetch(url, opts);
+    badge.className = res.ok ? 'ok' : 'err';
+    badge.textContent = `${res.status} ${res.statusText}`;
+    const text = await res.text().catch(() => '');
+    respEl.textContent = text || '(无内容)';
+  } catch (e) {
+    badge.className = 'err';
+    badge.textContent = '请求失败';
+    respEl.textContent = e.message;
+  } finally {
+    sendBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

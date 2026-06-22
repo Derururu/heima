@@ -23,5 +23,5 @@ public class Student {
     public void setId(Long id) { this.id = id; }
     public void setName(String name) { this.name = name; }
     public void setSubject(String subject) { this.subject = subject; }
-    public void setGrade(Double grade) { this.grade = grade; }
+    public void setGrade(Double grade) { this.grade = grade;}
 }
